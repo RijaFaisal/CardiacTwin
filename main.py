@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routes import upload, predict
 
 # New routes
-from api.routes import analyze, export, simulate
+from api.routes import analyze, export, simulate, demo
 
 app = FastAPI(title="ECG Analysis API", version="1.0.0")
 
@@ -27,7 +27,13 @@ app.include_router(predict.router, prefix="/api/v1", tags=["ML Inference"])
 app.include_router(analyze.router, prefix="/api/v1", tags=["Analysis"])
 app.include_router(export.router, prefix="/api/v1", tags=["Export"])
 app.include_router(simulate.router)
+app.include_router(demo.router)
 
 @app.get("/")
 def read_root():
     return {"message": "ECG Backend is running. Inference engine loaded."}
+
+@app.get("/health")
+def health():
+    from core.inference.gradcam import gradcam_runner
+    return {"status": "ok", "model_loaded": gradcam_runner._loaded}

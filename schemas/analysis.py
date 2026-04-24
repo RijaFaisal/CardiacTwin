@@ -158,7 +158,11 @@ class AnalysisResponse(BaseModel):
     # ── Explainability (present only when ?explain=true) ──────────────────
     gradcam: Optional[dict] = Field(
         None,
-        description="Grad-CAM beat explainability from the 1D CNN (CardiacDigitalTwin model)",
+        description=(
+            "Grad-CAM explainability. "
+            "gradcam.fcn_wang: temporal saliency map from FCN Wang (explains the actual diagnosis). "
+            "gradcam.mitbih_cnn: per-beat saliency from MIT-BIH CNN (beat morphology detail)."
+        ),
     )
 
     # ── Metadata ──────────────────────────────────────────────────────────

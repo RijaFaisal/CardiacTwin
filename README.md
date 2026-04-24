@@ -1,131 +1,111 @@
-# ECG ML Project
+# Cardiac Digital Twin — ECG Analysis System
 
-This project provides an ECG (Electrocardiogram) analysis and prediction system with a machine learning backend and a modern web frontend.
+Final Year Project: AI-powered ECG analysis with a cardiac digital twin simulator.
 
 ## Features
 
-- ECG signal analysis and delineation
-- Machine learning-based prediction using FCN models
-- Web interface for uploading and analyzing ECG data
-- REST API for programmatic access
-- Support for various ECG formats (WFDB, CSV)
+- **12-lead ECG analysis** — NeuroKit2 delineation (PR, QRS, QTc intervals, HRV)
+- **CNN classifier** — FCN-Wang architecture trained on MIT-BIH Arrhythmia Database with inter-patient split
+- **Grad-CAM explainability** — beat-level saliency heatmap overlaid on the waveform
+- **3D Cardiac Digital Twin** — Three.js heart model with patient-specific BPM animation
+- **Digital Twin Simulator** — pathology/treatment before-vs-after cardiac parameter comparison
+- **Model performance panel** — CNN vs Transformer vs SVM vs Logistic Regression macro-F1 comparison
+- **PDF clinical report** — exportable ReportLab PDF with verdict, metrics, and AI predictions
+- **Multi-format upload** — WFDB (`.hea`/`.dat`) and CSV
 
 ## Prerequisites
 
-- Python 3.8+
-- Node.js 16+
-- Git
+- Python 3.10+
+- Node.js 18+
 
-## Installation
+## Quick Start
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/umarhussain47/ecg-ml.git
-   cd ecg-ml
-   ```
+### 1. Backend
 
-### Backend Setup
+```bash
+# From repo root
+python -m venv venv
+source venv/bin/activate          # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 
-1. Navigate to the backend directory:
-   ```bash
-   cd ecg-back
-   ```
+uvicorn main:app --reload --port 8000
+```
 
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv .venv
-   # On Windows:
-   .venv\Scripts\activate
-   # On macOS/Linux:
-   source .venv/bin/activate
-   ```
+API runs at `http://localhost:8000`. Interactive docs at `/docs`.
 
-3. Install Python dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 2. Frontend
 
-4. Set up environment variables (optional):
-   Create a `.env` file in the `ecg-back` directory with any necessary configuration.
+```bash
+cd ecg-front
+npm install
+npm run dev
+```
 
-5. Download or place model artifacts:
-   - Place your trained model files (`.pth`) in `models/artifacts/`
-   - If models are not included, follow the training instructions in the documentation
+UI runs at `http://localhost:5173`.
 
-### Frontend Setup
+## ML Training (optional — pretrained model included)
 
-1. Navigate to the frontend directory:
-   ```bash
-   cd ecg-front
-   ```
+```bash
+source venv/bin/activate
 
-2. Install Node.js dependencies:
-   ```bash
-   npm install
-   ```
+# Build inter-patient dataset split
+python ml/build_dataset.py
 
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
+# Train CNN (FCN-Wang)
+python ml/train.py
 
-## Running the Project
+# Train Transformer encoder
+python ml/train_transformer.py
 
-1. Start the backend server:
-   ```bash
-   cd ecg-back
-   python main.py
-   ```
-   The backend will run on `http://localhost:5000` (or configured port).
+# Evaluate CNN + bootstrap CI + McNemar test
+python ml/evaluate.py
 
-2. Start the frontend (in a separate terminal):
-   ```bash
-   cd ecg-front
-   npm run dev
-   ```
-   The frontend will run on `http://localhost:5173` (or configured port).
+# SVM + Logistic Regression baselines
+python ml/baseline.py
+```
 
-3. Open your browser and navigate to the frontend URL to use the application.
-
-## API Documentation
-
-The backend provides REST API endpoints for:
-- `/api/upload` - Upload ECG files
-- `/api/analyze` - Analyze ECG data
-- `/api/predict` - Run ML predictions
-- `/api/export` - Export results
+Results are written to `ml/results/` and served via `GET /api/v1/simulate/metrics`.
 
 ## Project Structure
 
 ```
-ecg-back/          # Python backend
-├── api/           # API routes
-├── core/          # Core functionality
-│   ├── analysis/  # ECG analysis modules
-│   ├── inference/ # ML inference
-│   └── loader/    # Data loading
-├── models/        # ML models and artifacts
-├── storage/       # File storage
-└── schemas/       # Data schemas
-
-ecg-front/         # React frontend
-├── src/
-│   ├── components/
-│   ├── api/
-│   └── types/
-└── public/
+.
+├── main.py                  # FastAPI app entry point
+├── api/routes/              # upload, analyze, export, simulate
+├── core/
+│   ├── analysis/            # NeuroKit2 delineation, condition mapper
+│   ├── inference/           # FCN-Wang runner, Grad-CAM
+│   └── loader/              # WFDB + CSV auto-detect loader
+├── ml/                      # Training, evaluation, augmentation scripts
+│   ├── results/             # cnn_metrics.json, baseline_metrics.json
+│   └── data/                # X_train/val/test .npy (gitignored)
+├── models/                  # Trained model weights
+├── schemas/                 # Pydantic schemas (AnalysisResponse etc.)
+├── storage/
+│   ├── sessions/            # Persisted analysis JSON (for PDF export)
+│   └── uploads/             # Uploaded ECG files (gitignored)
+└── ecg-front/               # React + TypeScript + Vite frontend
+    └── src/
+        ├── components/      # Dashboard, AboveFold, HeartVisualization, SimulatePanel, ThirdScroll
+        ├── api/             # ecgClient.ts
+        └── types/           # analysis.ts
 ```
 
-## Development
+## API Endpoints
 
-### Backend Development
-- Use `python main.py` to run the development server
-- Add new routes in `api/routes/`
-- Implement analysis logic in `core/analysis/`
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/v1/upload` | Upload WFDB pair |
+| POST | `/api/v1/upload/csv` | Upload CSV |
+| POST | `/api/v1/analyze/{session_id}` | Full ECG analysis |
+| POST | `/api/v1/analyze/{session_id}?explain=true` | Analysis + Grad-CAM |
+| GET  | `/api/v1/analyze/{session_id}/signal-quality` | Signal quality only |
+| POST | `/api/v1/export/{session_id}/pdf` | PDF clinical report |
+| POST | `/api/v1/simulate/pathology` | Simulate pathology parameters |
+| POST | `/api/v1/simulate/treatment` | Simulate treatment response |
+| GET  | `/api/v1/simulate/metrics` | CNN vs baseline model metrics |
+| GET  | `/health` | Health check + model load status |
 
-### Frontend Development
-- Use `npm run dev` for hot-reloading
-- Components are in `src/components/`
-- API calls are in `src/api/`
+## Disclaimer
 
-## Contributing
+This system is for research and educational purposes only. It does not constitute a medical diagnosis. All findings must be reviewed by a qualified healthcare professional.

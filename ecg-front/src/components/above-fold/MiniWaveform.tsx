@@ -3,17 +3,32 @@
 import { useEffect, useRef } from 'react';
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
-import type { WaveformData, PeakMarkers } from '../../types/analysis';
+import type { WaveformData, PeakMarkers, GradcamResult } from '../../types/analysis';
 
 interface MiniWaveformProps {
-    waveform: WaveformData;
-    peaks?: PeakMarkers;
+    waveform:     WaveformData;
+    peaks?:       PeakMarkers;
     showMarkers?: boolean;
-    minimal?: boolean;
+    minimal?:     boolean;
+    saliency?:    GradcamResult | null;
 }
 
-export default function MiniWaveform({ waveform, peaks, showMarkers = false, minimal = false }: MiniWaveformProps) {
+const GRADCAM_SR = 360; // CNN always runs at 360 Hz
+const WIN_SEC    = 0.5; // 180-sample window = 0.5 s
+const N_SEGS     = 18;  // divide window into 18 segments of 10 samples each
+
+function saliencyColor(v: number, alpha = 0.38): string {
+    // 0 → emerald, 0.5 → amber, 1 → red
+    const r = Math.round(v < 0.5 ? 34  + (234 - 34)  * (v / 0.5) : 234 + (239 - 234) * ((v - 0.5) / 0.5));
+    const g = Math.round(v < 0.5 ? 197 + (179 - 197) * (v / 0.5) : 179 + (68  - 179) * ((v - 0.5) / 0.5));
+    const b = Math.round(v < 0.5 ? 94  + (8   - 94)  * (v / 0.5) : 8   + (68  - 8)   * ((v - 0.5) / 0.5));
+    return `rgba(${r},${g},${b},${alpha})`;
+}
+
+export default function MiniWaveform({ waveform, peaks, showMarkers = false, minimal = false, saliency = null }: MiniWaveformProps) {
     const containerRef = useRef<HTMLDivElement>(null);
+    const saliencyRef  = useRef<GradcamResult | null>(null);
+    saliencyRef.current = saliency;
 
     useEffect(() => {
         if (!containerRef.current || !waveform.samples.length) return;
@@ -66,7 +81,7 @@ export default function MiniWaveform({ waveform, peaks, showMarkers = false, min
             cursor: minimal ? { show: false } : { drag: { x: true, y: false } },
             scales: {
                 x: { time: false },
-                y: { auto: true }, // Or hardcode [-2, 2] for strict mV scaling
+                y: { auto: true },
             },
             series,
             axes: minimal ? [
@@ -74,8 +89,8 @@ export default function MiniWaveform({ waveform, peaks, showMarkers = false, min
                 { show: false }
             ] : [
                 {
-                    stroke: '#71717a', // zinc-500 text
-                    grid: { stroke: '#27272a', width: 1 }, // zinc-800 grid lines
+                    stroke: '#71717a',
+                    grid: { stroke: '#27272a', width: 1 },
                     space: 40,
                 },
                 {
@@ -83,6 +98,44 @@ export default function MiniWaveform({ waveform, peaks, showMarkers = false, min
                     grid: { stroke: '#27272a', width: 1 },
                 },
             ],
+            hooks: {
+                draw: [(u) => {
+                    const gc = saliencyRef.current;
+                    if (!gc || !gc.cnn_available || gc.beats.length === 0) return;
+
+                    const ctx  = u.ctx;
+                    const bbox = u.bbox;
+
+                    ctx.save();
+
+                    for (const beat of gc.beats) {
+                        const tCenter = beat.r_peak / GRADCAM_SR;
+                        const tStart  = tCenter - WIN_SEC / 2;
+
+                        for (let seg = 0; seg < N_SEGS; seg++) {
+                            const segT1 = tStart + (seg       / N_SEGS) * WIN_SEC;
+                            const segT2 = tStart + ((seg + 1) / N_SEGS) * WIN_SEC;
+
+                            // skip segments outside the waveform time range
+                            if (segT2 < 0 || segT1 > waveform.duration_s) continue;
+
+                            const x1 = u.valToPos(segT1, 'x', true);
+                            const x2 = u.valToPos(segT2, 'x', true);
+
+                            // average saliency for this segment (10 samples)
+                            const slice = beat.saliency.slice(seg * 10, seg * 10 + 10);
+                            const avg   = slice.length > 0
+                                ? slice.reduce((a, b) => a + b, 0) / slice.length
+                                : 0;
+
+                            ctx.fillStyle = saliencyColor(avg);
+                            ctx.fillRect(x1, bbox.top, x2 - x1, bbox.height);
+                        }
+                    }
+
+                    ctx.restore();
+                }],
+            },
         };
 
         // 3. Initialize uPlot
@@ -103,6 +156,17 @@ export default function MiniWaveform({ waveform, peaks, showMarkers = false, min
             u.destroy();
         };
     }, [waveform, peaks, showMarkers]);
+
+    // Trigger a redraw when saliency data arrives or is cleared
+    // (uPlot instance persists; only the hook reads saliencyRef)
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const canvas = containerRef.current.querySelector('canvas');
+        if (!canvas) return;
+        // Force uPlot to fire its draw hooks by dispatching a resize
+        const ev = new Event('resize');
+        window.dispatchEvent(ev);
+    }, [saliency]);
 
     return (
         <div className={`w-full h-full ${minimal ? 'min-h-[120px]' : 'min-h-[220px]'} bg-zinc-950 rounded relative`}>

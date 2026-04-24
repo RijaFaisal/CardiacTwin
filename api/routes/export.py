@@ -19,6 +19,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from schemas.analysis import AnalysisResponse
+from storage.session_store import load as load_session
 
 router = APIRouter(tags=["Export"])
 logger = logging.getLogger(__name__)
@@ -206,8 +207,15 @@ def _build_pdf(data: AnalysisResponse) -> bytes:
     "/export/{session_id}/pdf",
     summary="Export analysis as PDF clinical report",
 )
-async def export_pdf(session_id: str, analysis: AnalysisResponse) -> StreamingResponse:
+async def export_pdf(session_id: str) -> StreamingResponse:
+    stored = load_session(session_id)
+    if stored is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Session '{session_id}' not found. Run /analyze first.",
+        )
     try:
+        analysis = AnalysisResponse.model_validate(stored)
         pdf_bytes = _build_pdf(analysis)
     except RuntimeError as exc:
         raise HTTPException(status_code=500, detail=str(exc))

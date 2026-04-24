@@ -1,0 +1,375 @@
+{
+  "model": "FCN Wang (PTB-XL, 71-class, 12-lead)",
+  "dataset": "PTB-XL strat_fold=10 (held-out test set)",
+  "n_records": 2198,
+  "n_records_total": 2198,
+  "n_classes": 71,
+  "primary_metric": "macro_auc",
+  "macro_auc": 0.9239,
+  "macro_auc_ci": {
+    "low": 0.9102,
+    "high": 0.9346
+  },
+  "threshold": 0.5,
+  "macro_f1": 12.85,
+  "micro_f1": 45.21,
+  "exact_match_acc": 1.64,
+  "note": "Primary metric is macro AUC (threshold-free discrimination). Macro F1 is low due to class imbalance across 71 labels at a fixed 0.5 threshold \u2014 this is expected for multi-label classification and does not indicate poor discrimination.",
+  "per_class": {
+    "1AVB": {
+      "auc": 0.9574,
+      "avg_precision": 0.4442,
+      "support": 79
+    },
+    "2AVB": {
+      "auc": 0.8298,
+      "avg_precision": 0.0027,
+      "support": 1
+    },
+    "3AVB": {
+      "auc": 0.9556,
+      "avg_precision": 0.1718,
+      "support": 2
+    },
+    "ABQRS": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "AFIB": {
+      "auc": 0.9355,
+      "avg_precision": 0.0455,
+      "support": 8
+    },
+    "AFLT": {
+      "auc": 0.9997,
+      "avg_precision": 0.8042,
+      "support": 4
+    },
+    "ALMI": {
+      "auc": 0.9598,
+      "avg_precision": 0.4573,
+      "support": 27
+    },
+    "AMI": {
+      "auc": 0.8878,
+      "avg_precision": 0.1065,
+      "support": 35
+    },
+    "ANEUR": {
+      "auc": 0.9448,
+      "avg_precision": 0.2206,
+      "support": 10
+    },
+    "ASMI": {
+      "auc": 0.9754,
+      "avg_precision": 0.8587,
+      "support": 234
+    },
+    "BIGU": {
+      "auc": 0.9923,
+      "avg_precision": 0.0556,
+      "support": 1
+    },
+    "CLBBB": {
+      "auc": 0.9969,
+      "avg_precision": 0.8985,
+      "support": 54
+    },
+    "CRBBB": {
+      "auc": 0.9976,
+      "avg_precision": 0.8906,
+      "support": 54
+    },
+    "DIG": {
+      "auc": 0.9191,
+      "avg_precision": 0.232,
+      "support": 18
+    },
+    "EL": {
+      "auc": 0.8914,
+      "avg_precision": 0.069,
+      "support": 9
+    },
+    "HVOLT": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "ILBBB": {
+      "auc": 0.9235,
+      "avg_precision": 0.1347,
+      "support": 8
+    },
+    "ILMI": {
+      "auc": 0.9529,
+      "avg_precision": 0.4616,
+      "support": 48
+    },
+    "IMI": {
+      "auc": 0.9347,
+      "avg_precision": 0.6903,
+      "support": 267
+    },
+    "INJAL": {
+      "auc": 0.9824,
+      "avg_precision": 0.508,
+      "support": 14
+    },
+    "INJAS": {
+      "auc": 0.9841,
+      "avg_precision": 0.4418,
+      "support": 22
+    },
+    "INJIL": {
+      "auc": 0.9775,
+      "avg_precision": 0.0352,
+      "support": 2
+    },
+    "INJIN": {
+      "auc": 0.9959,
+      "avg_precision": 0.1394,
+      "support": 2
+    },
+    "INJLA": {
+      "auc": 0.8115,
+      "avg_precision": 0.0036,
+      "support": 2
+    },
+    "INVT": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "IPLMI": {
+      "auc": 0.8423,
+      "avg_precision": 0.3061,
+      "support": 5
+    },
+    "IPMI": {
+      "auc": 0.9632,
+      "avg_precision": 0.033,
+      "support": 3
+    },
+    "IRBBB": {
+      "auc": 0.9771,
+      "avg_precision": 0.7563,
+      "support": 112
+    },
+    "ISCAL": {
+      "auc": 0.9143,
+      "avg_precision": 0.2061,
+      "support": 66
+    },
+    "ISCAN": {
+      "auc": 0.8355,
+      "avg_precision": 0.0118,
+      "support": 4
+    },
+    "ISCAS": {
+      "auc": 0.9467,
+      "avg_precision": 0.165,
+      "support": 17
+    },
+    "ISCIL": {
+      "auc": 0.9496,
+      "avg_precision": 0.1463,
+      "support": 18
+    },
+    "ISCIN": {
+      "auc": 0.8867,
+      "avg_precision": 0.1759,
+      "support": 22
+    },
+    "ISCLA": {
+      "auc": 0.9155,
+      "avg_precision": 0.1042,
+      "support": 13
+    },
+    "ISC_": {
+      "auc": 0.9614,
+      "avg_precision": 0.6861,
+      "support": 128
+    },
+    "IVCD": {
+      "auc": 0.7254,
+      "avg_precision": 0.1417,
+      "support": 79
+    },
+    "LAFB": {
+      "auc": 0.9868,
+      "avg_precision": 0.8638,
+      "support": 162
+    },
+    "LAO/LAE": {
+      "auc": 0.801,
+      "avg_precision": 0.0977,
+      "support": 42
+    },
+    "LMI": {
+      "auc": 0.8716,
+      "avg_precision": 0.0549,
+      "support": 20
+    },
+    "LNGQT": {
+      "auc": 0.8303,
+      "avg_precision": 0.0418,
+      "support": 11
+    },
+    "LOWT": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "LPFB": {
+      "auc": 0.9469,
+      "avg_precision": 0.3824,
+      "support": 18
+    },
+    "LPR": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "LVH": {
+      "auc": 0.954,
+      "avg_precision": 0.738,
+      "support": 214
+    },
+    "LVOLT": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "NDT": {
+      "auc": 0.9214,
+      "avg_precision": 0.5451,
+      "support": 182
+    },
+    "NORM": {
+      "auc": 0.9491,
+      "avg_precision": 0.9324,
+      "support": 963
+    },
+    "NST_": {
+      "auc": 0.8715,
+      "avg_precision": 0.1045,
+      "support": 52
+    },
+    "NT_": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "PAC": {
+      "auc": 0.6795,
+      "avg_precision": 0.0056,
+      "support": 4
+    },
+    "PACE": {
+      "auc": 0.9858,
+      "avg_precision": 0.8236,
+      "support": 26
+    },
+    "PMI": {
+      "auc": 0.9169,
+      "avg_precision": 0.0196,
+      "support": 2
+    },
+    "PRC(S)": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "PSVT": {
+      "auc": 0.9954,
+      "avg_precision": 0.2167,
+      "support": 2
+    },
+    "PVC": {
+      "auc": 0.9834,
+      "avg_precision": 0.6839,
+      "support": 96
+    },
+    "QWAVE": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "RAO/RAE": {
+      "auc": 0.9624,
+      "avg_precision": 0.2225,
+      "support": 10
+    },
+    "RVH": {
+      "auc": 0.9304,
+      "avg_precision": 0.3904,
+      "support": 12
+    },
+    "SARRH": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "SBRAD": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "SEHYP": {
+      "auc": 0.9995,
+      "avg_precision": 0.5833,
+      "support": 2
+    },
+    "SR": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "STACH": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "STD_": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "STE_": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "SVARR": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "SVTAC": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "TAB_": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "TRIGU": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "VCLVH": {
+      "auc": null,
+      "support": 0,
+      "note": "no positive samples"
+    },
+    "WPW": {
+      "auc": 0.8114,
+      "avg_precision": 0.2816,
+      "support": 8
+    }
+  }
+}

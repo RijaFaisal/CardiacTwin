@@ -8,10 +8,10 @@ interface Props {
     severity: 'normal' | 'warning' | 'critical';
 }
 
-const SEVERITY_COLOR: Record<string, number> = {
-    normal:   0x22c55e,   // green
-    warning:  0xeab308,   // yellow
-    critical: 0xef4444,   // red
+const SEVERITY_LIGHT: Record<string, number> = {
+    normal:   0x22c55e,   // green glow
+    warning:  0xeab308,   // amber glow
+    critical: 0xff2222,   // red glow
 };
 
 export default function HeartVisualization({ bpm, severity }: Props) {
@@ -39,10 +39,16 @@ export default function HeartVisualization({ bpm, severity }: Props) {
         dir.position.set(3, 5, 3);
         scene.add(dir);
 
-        // Coloured point light that matches severity
-        const accent = new THREE.PointLight(SEVERITY_COLOR[severity] ?? 0x22c55e, 2, 8);
+        // Severity-coloured accent light — glow changes, heart colour stays red
+        const accentColor = SEVERITY_LIGHT[severity] ?? SEVERITY_LIGHT.normal;
+        const accent = new THREE.PointLight(accentColor, 3, 10);
         accent.position.set(-2, 1, 2);
         scene.add(accent);
+
+        // Soft fill light from below to give depth
+        const fill = new THREE.PointLight(0xff4444, 0.8, 6);
+        fill.position.set(0, -2, 1);
+        scene.add(fill);
 
         // ── Controls ──────────────────────────────────────────────────
         const controls = new OrbitControls(camera, renderer.domElement);
@@ -58,18 +64,6 @@ export default function HeartVisualization({ bpm, severity }: Props) {
             '/heart.glb',
             (gltf) => {
                 heart = gltf.scene;
-                // Apply accent colour to all meshes
-                heart.traverse((child) => {
-                    if ((child as THREE.Mesh).isMesh) {
-                        const mesh = child as THREE.Mesh;
-                        const mat  = new THREE.MeshStandardMaterial({
-                            color:     SEVERITY_COLOR[severity] ?? 0x22c55e,
-                            roughness: 0.4,
-                            metalness: 0.1,
-                        });
-                        mesh.material = mat;
-                    }
-                });
                 // Centre the model
                 const box = new THREE.Box3().setFromObject(heart);
                 const ctr = box.getCenter(new THREE.Vector3());
@@ -91,19 +85,27 @@ export default function HeartVisualization({ bpm, severity }: Props) {
             elapsed += now - last;
             last     = now;
 
+            const phase = (elapsed % beatMs) / beatMs;   // 0 → 1
+
             if (heart) {
                 // Slow continuous rotation
                 heart.rotation.y += 0.003;
 
-                // Pulse: quick scale up then back down over one beat cycle
-                const phase = (elapsed % beatMs) / beatMs;         // 0 → 1
+                // Scale pulse
                 const pulse = phase < 0.15
-                    ? 1 + 0.08 * (phase / 0.15)                    // expand
+                    ? 1 + 0.08 * (phase / 0.15)
                     : phase < 0.35
-                        ? 1 + 0.08 * (1 - (phase - 0.15) / 0.20)  // contract
-                        : 1.0;                                      // rest
+                        ? 1 + 0.08 * (1 - (phase - 0.15) / 0.20)
+                        : 1.0;
                 heart.scale.setScalar(pulse);
             }
+
+            // Accent glow pulses with the beat
+            accent.intensity = phase < 0.15
+                ? 3 + 4 * (phase / 0.15)
+                : phase < 0.35
+                    ? 3 + 4 * (1 - (phase - 0.15) / 0.20)
+                    : 3;
 
             controls.update();
             renderer.render(scene, camera);

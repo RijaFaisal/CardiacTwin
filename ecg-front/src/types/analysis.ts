@@ -65,6 +65,20 @@ export interface Verdict {
   quality: QualityBadge;
 }
 
+export interface GradcamBeat {
+  r_peak:     number;     // sample index at 360 Hz
+  class:      string;
+  confidence: number;
+  saliency:   number[];   // 180 values, 0–1
+  segment:    number[];   // 180 raw normalised samples
+}
+
+export interface GradcamResult {
+  beats:          GradcamBeat[];
+  dominant_class: string | null;
+  cnn_available:  boolean;
+}
+
 export interface AnalysisResponse {
   session_id: string;
   status: string;
@@ -74,4 +88,5 @@ export interface AnalysisResponse {
   peaks: PeakMarkers;
   ai_analysis: AIAnalysis;
   processing_notes: string[];
+  gradcam?: GradcamResult;
 }

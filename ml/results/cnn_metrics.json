@@ -1,37 +1,42 @@
 {
-  "accuracy": 97.82,
-  "macro_f1": 94.01,
+  "accuracy": 75.5,
+  "macro_f1": 39.02,
+  "macro_auc": 0.8386,
+  "macro_f1_ci": {
+    "low": 36.63,
+    "high": 49.77
+  },
   "per_class": {
     "Normal": {
-      "precision": 99.2,
-      "recall": 99.2,
-      "f1": 99.2,
-      "support": 367
+      "precision": 99.3,
+      "recall": 71.2,
+      "f1": 82.9,
+      "support": 378
     },
     "Bundle Branch Block": {
-      "precision": 97.7,
-      "recall": 100.0,
-      "f1": 98.9,
-      "support": 86
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 0
     },
     "Ventricular": {
-      "precision": 75.0,
-      "recall": 100.0,
-      "f1": 85.7,
-      "support": 15
+      "precision": 20.2,
+      "recall": 71.0,
+      "f1": 31.4,
+      "support": 31
     },
     "Atrial": {
-      "precision": 87.5,
-      "recall": 100.0,
-      "f1": 93.3,
-      "support": 7
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 2
     },
     "Other": {
-      "precision": 98.5,
-      "recall": 88.0,
-      "f1": 93.0,
-      "support": 75
+      "precision": 76.4,
+      "recall": 85.7,
+      "f1": 80.8,
+      "support": 189
     }
   },
-  "test_samples": 550
+  "test_samples": 600
 }

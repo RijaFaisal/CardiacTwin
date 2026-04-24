@@ -77,94 +77,103 @@ def get_beat_labels(record_path, r_peaks, fs, tolerance_ms=75):
 def build_dataset(records=ALL_RECORDS, duration_sec=60):
     """
     Loop through all records, extract segments and labels.
+    Returns per-record data so save_dataset() can split at the patient level.
     duration_sec: how many seconds per record to use (60 = 1 minute)
     """
-    all_segments = []
-    all_labels   = []
-    failed       = []
+    record_data = []   # list of {'name', 'segments', 'labels'}
+    failed      = []
 
     for record_name in records:
         record_path = f'data/raw/mitdb/{record_name}'
         print(f"Processing {record_name}...", end=" ")
 
         try:
-            # Load
             signal, fs, _ = load_record(record_path)
             n_samples = int(duration_sec * fs)
             raw   = signal[:n_samples, 0]
             clean = preprocess(raw, fs)
 
-            # R-peaks
             r_peaks = detect_rpeaks(clean, fs)
             if len(r_peaks) == 0:
                 print("SKIP (no peaks)")
                 failed.append(record_name)
                 continue
 
-            # Segments
             segments, valid_peaks = extract_segments(clean, r_peaks)
             if len(segments) == 0:
                 print("SKIP (no segments)")
                 failed.append(record_name)
                 continue
 
-            # Labels
             labels = get_beat_labels(record_path, valid_peaks, fs)
             if labels is None:
                 print("SKIP (no annotations)")
                 failed.append(record_name)
                 continue
 
-            # Trim to matching length
-            min_len = min(len(segments), len(labels))
+            min_len  = min(len(segments), len(labels))
             segments = segments[:min_len]
             labels   = labels[:min_len]
 
-            all_segments.append(segments)
-            all_labels.append(labels)
+            record_data.append({
+                'name':     record_name,
+                'segments': segments,
+                'labels':   labels,
+            })
             print(f"OK — {len(segments)} beats")
 
         except Exception as e:
             print(f"FAILED — {e}")
             failed.append(record_name)
 
-    # Combine all records
-    X = np.concatenate(all_segments, axis=0)
-    y = np.concatenate(all_labels,   axis=0)
-
+    # Summary over all records combined
+    all_y = np.concatenate([r['labels'] for r in record_data])
     print(f"\n--- Dataset Summary ---")
-    print(f"Total segments : {X.shape[0]}")
-    print(f"Segment shape  : {X.shape[1]}")
-    print(f"Labels shape   : {y.shape}")
+    print(f"Records loaded : {len(record_data)}")
+    print(f"Total beats    : {len(all_y)}")
     print(f"\nClass distribution:")
     for cls, name in CLASS_NAMES.items():
-        count = np.sum(y == cls)
-        pct   = 100 * count / len(y)
+        count = np.sum(all_y == cls)
+        pct   = 100 * count / len(all_y)
         print(f"  {name:25s}: {count:5d} ({pct:.1f}%)")
-
     print(f"\nFailed records : {failed}")
-    return X, y
+
+    return record_data
 
 
-def save_dataset(X, y):
+def save_dataset(record_data: list):
     """
-    Save as numpy arrays — fast to load during training.
-    70% train / 15% val / 15% test split.
+    Split at the RECORD level (inter-patient split) to prevent data leakage.
+
+    Beats from the same patient cannot appear in both train and test.
+    Random beat-level shuffling inflates accuracy by letting the model
+    memorise patient-specific signal characteristics.
+
+    70% of records → train | 15% → val | 15% → test
+    Beats are shuffled within each split after record assignment.
     """
     os.makedirs('ml/data', exist_ok=True)
 
-    # Shuffle
-    idx = np.random.permutation(len(X))
-    X, y = X[idx], y[idx]
+    n       = len(record_data)
+    rng     = np.random.default_rng(42)
+    indices = rng.permutation(n)
 
-    # Split
-    n      = len(X)
     n_train = int(0.70 * n)
     n_val   = int(0.15 * n)
 
-    X_train, y_train = X[:n_train],           y[:n_train]
-    X_val,   y_val   = X[n_train:n_train+n_val], y[n_train:n_train+n_val]
-    X_test,  y_test  = X[n_train+n_val:],     y[n_train+n_val:]
+    train_idx = indices[:n_train]
+    val_idx   = indices[n_train:n_train + n_val]
+    test_idx  = indices[n_train + n_val:]
+
+    def _concat_and_shuffle(idx_list):
+        segs   = np.concatenate([record_data[i]['segments'] for i in idx_list])
+        labels = np.concatenate([record_data[i]['labels']   for i in idx_list])
+        perm   = np.random.permutation(len(segs))
+        return segs[perm], labels[perm]
+
+    X_train, y_train = _concat_and_shuffle(train_idx)
+    X_val,   y_val   = _concat_and_shuffle(val_idx)
+    X_test,  y_test  = _concat_and_shuffle(test_idx)
 
     np.save('ml/data/X_train.npy', X_train)
     np.save('ml/data/y_train.npy', y_train)
@@ -173,13 +182,20 @@ def save_dataset(X, y):
     np.save('ml/data/X_test.npy',  X_test)
     np.save('ml/data/y_test.npy',  y_test)
 
-    print(f"\n--- Saved ---")
-    print(f"Train : {X_train.shape}")
-    print(f"Val   : {X_val.shape}")
-    print(f"Test  : {X_test.shape}")
+    train_records = [record_data[i]['name'] for i in train_idx]
+    val_records   = [record_data[i]['name'] for i in val_idx]
+    test_records  = [record_data[i]['name'] for i in test_idx]
+
+    print(f"\n--- Inter-patient Split ---")
+    print(f"Train records ({len(train_idx)}): {train_records}")
+    print(f"Val   records ({len(val_idx)}):   {val_records}")
+    print(f"Test  records ({len(test_idx)}):  {test_records}")
+    print(f"\nTrain beats : {X_train.shape}")
+    print(f"Val   beats : {X_val.shape}")
+    print(f"Test  beats : {X_test.shape}")
     print(f"Files saved to ml/data/")
 
 
 if __name__ == '__main__':
-    X, y = build_dataset()
-    save_dataset(X, y)
+    record_data = build_dataset()
+    save_dataset(record_data)

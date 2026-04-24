@@ -139,13 +139,25 @@ results['svm'] = {
     'macro_f1': round(report_svm['macro avg']['f1-score'] * 100, 2),
 }
 
-# ── Save ──────────────────────────────────────────────────────────
+# ── Save SVM predictions for McNemar's test in evaluate.py ───────
+np.save('ml/results/svm_predictions.npy', y_pred_svm)
+
+# ── Save (preserve keys added by other scripts, e.g. transformer) ─
 os.makedirs('ml/results', exist_ok=True)
 out_path = 'ml/results/baseline_metrics.json'
+existing = {}
+if os.path.exists(out_path):
+    try:
+        with open(out_path) as f:
+            existing = json.load(f)
+    except Exception:
+        pass
+existing.update(results)
 with open(out_path, 'w') as f:
-    json.dump(results, f, indent=2)
+    json.dump(existing, f, indent=2)
 
 print(f"\nBaseline metrics saved to {out_path}")
+print(f"SVM predictions saved to ml/results/svm_predictions.npy")
 print(f"\nSummary:")
 print(f"  Logistic Regression : {acc_lr*100:.2f}% accuracy, {results['logistic_regression']['macro_f1']:.2f}% macro-F1")
 print(f"  SVM (RBF)           : {acc_svm*100:.2f}% accuracy, {results['svm']['macro_f1']:.2f}% macro-F1")

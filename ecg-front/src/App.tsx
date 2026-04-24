@@ -8,7 +8,7 @@ export default function App() {
     return (
         <div className="bg-zinc-950 min-h-screen">
             {sessionId ? (
-                <Dashboard sessionId={sessionId} />
+                <Dashboard sessionId={sessionId} onReset={() => setSessionId(null)} />
             ) : (
                 <UploadScreen onUploadSuccess={setSessionId} />
             )}

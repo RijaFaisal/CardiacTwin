@@ -23,12 +23,9 @@ export default function FirstScroll({ data }: { data: AnalysisResponse }) {
             <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold text-zinc-100">Full Rhythm Analysis</h2>
-                    <div className="flex gap-4 text-sm">
-                        <button className="text-zinc-400 hover:text-white transition-colors">Toggle Calipers</button>
-                        <div className="flex items-center gap-2 text-emerald-400">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                            Signal Quality: {data.verdict.quality.score_pct}%
-                        </div>
+                    <div className="flex items-center gap-2 text-emerald-400 text-sm">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        Signal Quality: {data.verdict.quality.score_pct}%
                     </div>
                 </div>
                 {/* Temporarily reusing MiniWaveform until full 12-lead component is built */}
@@ -97,7 +94,7 @@ export default function FirstScroll({ data }: { data: AnalysisResponse }) {
                                         <span className="text-sm text-zinc-200">{pred.display_name}</span>
                                         {data.verdict.code === pred.code && (
                                             <span className="text-[10px] text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded uppercase tracking-wider">
-                                                (Corroborated by NK2)
+                                                Confirmed by signal analysis
                                             </span>
                                         )}
                                     </div>

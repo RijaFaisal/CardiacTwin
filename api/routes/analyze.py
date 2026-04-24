@@ -39,6 +39,7 @@ from schemas.analysis import (
 
 from core.loader.ecg_loader import load_session_ecg_with_notes
 from core.inference.gradcam import gradcam_runner
+from storage.session_store import save as save_session
 
 router = APIRouter(tags=["Analysis"])
 logger = logging.getLogger(__name__)
@@ -193,7 +194,7 @@ def _empty_nk_result(signal_2d, sampling_rate: int) -> dict:
 )
 async def analyze_ecg(
     session_id: str,
-    explain: bool = Query(False, description="Run Grad-CAM beat explainability (CNN)"),
+    explain: bool = Query(False, description="Run Grad-CAM: FCN Wang temporal saliency (primary) + MIT-BIH CNN beat detail (secondary)"),
 ) -> AnalysisResponse:
     notes: list[str] = []
 
@@ -235,16 +236,22 @@ async def analyze_ecg(
         try:
             lead2      = signal_raw[:, 1] if signal_raw.shape[1] > 1 else signal_raw[:, 0]
             r_peaks_nk = nk_result["peaks"].get("r_peaks", [])
-            gradcam_result = gradcam_runner.run(lead2, native_sr, r_peaks_nk)
+            probs      = ai_raw.get("probabilities", {})
+            gradcam_result = gradcam_runner.run(
+                lead2, native_sr, r_peaks_nk,
+                ecg_scaled=signal_ai_input,
+                probabilities=probs,
+            )
         except Exception as exc:
             logger.warning("Grad-CAM failed for session %s: %s", session_id, exc)
             notes.append(f"Grad-CAM unavailable: {exc}")
 
-    # ── 6. Assemble and return ────────────────────────────────────────────
+    # ── 6. Assemble, persist, and return ─────────────────────────────────
     try:
         response = _build_response(session_id, nk_result, ai_raw, notes)
         if gradcam_result is not None:
             response.gradcam = gradcam_result
+        save_session(session_id, response)
         return response
     except Exception as exc:
         logger.exception("Response assembly failed for session %s", session_id)

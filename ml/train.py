@@ -6,6 +6,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from sklearn.utils.class_weight import compute_class_weight
+from ml.augment import oversample_minority
 
 # ── Reproducibility ───────────────────────────────────────────────
 np.random.seed(42)
@@ -15,6 +16,11 @@ tf.random.set_seed(42)
 print("Loading dataset...")
 X_train = np.load('ml/data/X_train.npy')
 y_train = np.load('ml/data/y_train.npy')
+
+# ── Augment minority classes to 500 samples each ──────────────────
+print("Augmenting minority classes...")
+X_train, y_train = oversample_minority(X_train, y_train, target_per_class=500)
+print(f"After augmentation: {X_train.shape[0]} training beats")
 X_val   = np.load('ml/data/X_val.npy')
 y_val   = np.load('ml/data/y_val.npy')
 

@@ -28,3 +28,4 @@ PyWavelets
 
 # API / validation
 pydantic
+reportlab>=4.0

@@ -1,8 +1,60 @@
+# Python
 venv/
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.ipynb_checkpoints/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# OS & editors
 .DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.swo
+.claude/
+.cursor/
+
+# Project: uploads & sessions
 storage/uploads/*
+storage/sessions/*
+
+# ML & data (large / downloadable / regenerated)
 ml/data/
+# Trained weights — use Git LFS or release assets if you need them in-repo
+models/*.h5
+models/*.keras
+models/*.pth
+models/*.pt
+models/*.onnx
+ml/results/*.npy
+ml/checkpoints/
+
+# PTB-XL / PhysioNet mirrors (re-download with project scripts)
+data/raw/ptbxl/
+# Optional: ignore generated per-record exports
+data/processed/heart_data_*.csv
+
+# Node / frontend
 node_modules/
 ecg-front/dist/
+ecg-front/.env.local
+
+# Optional local GLB mirror (app uses ecg-front/public/)
+/glb/
