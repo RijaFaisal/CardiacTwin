@@ -1,9 +1,30 @@
+# Web framework
 fastapi
 uvicorn
 python-multipart
+
+# PyTorch stack (inference)
 torch
 fastai
-scikit-learn
-numpy
 joblib
+
+# TensorFlow stack (training pipeline)
+tensorflow==2.16.2
+keras==3.13.2
+h5py
+
+# Data & ML
+numpy
+scipy
+scikit-learn
+pandas
+matplotlib
+
+# ECG processing
+wfdb
+neurokit2
+heartpy
+PyWavelets
+
+# API / validation
 pydantic

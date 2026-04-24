@@ -83,4 +83,8 @@ class FCNWangPipeline:
         }
 
 # Instantiate as a singleton for the FastAPI app
-ml_pipeline = FCNWangPipeline()
+try:
+    ml_pipeline = FCNWangPipeline()
+except Exception as e:
+    print(f"WARNING: ML pipeline not loaded ({e}). Predict endpoint will be unavailable.")
+    ml_pipeline = None

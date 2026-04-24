@@ -1,0 +1,44 @@
+======================================================================
+CROSS-DATASET GENERALISATION REPORT
+Model: CNN trained on MIT-BIH Arrhythmia Database only
+======================================================================
+
+──────────────────────────────────────────────────────────────────────
+Dataset : PTB-XL  (Resampled 100 Hz → 360 Hz, Lead II)
+──────────────────────────────────────────────────────────────────────
+Total records   : 2007
+Evaluated       : 2007
+Skipped         : 0
+Overall agreement: 53.7%
+
+  Class                        GT  Agree    Rate
+  ---------------------------------------------
+  Normal                     1023    972   95.0%
+  Bundle Branch Block         229     44   19.2%
+  Ventricular                  81      9   11.1%
+  Atrial                       13      0    0.0%
+  Other                       661     53    8.0%
+
+Note: 'Agreement' = CNN dominant beat class matches
+       record-level ground-truth diagnosis.
+       Lower agreement on structural diseases (MI, HYP) is
+       expected — these do not alter individual beat morphology.
+
+──────────────────────────────────────────────────────────────────────
+Dataset : PTB-DB  (Resampled 1000 Hz → 360 Hz, Lead II)
+──────────────────────────────────────────────────────────────────────
+Total records   : 251
+Evaluated       : 247
+Skipped         : 4
+Overall agreement: 12.1%
+
+  Class                        GT  Agree    Rate
+  ---------------------------------------------
+  Other                       247     30   12.1%
+
+Note: 'Agreement' = CNN dominant beat class matches
+       record-level ground-truth diagnosis.
+       Lower agreement on structural diseases (MI, HYP) is
+       expected — these do not alter individual beat morphology.
+
+======================================================================

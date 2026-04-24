@@ -1,0 +1,37 @@
+{
+  "accuracy": 97.82,
+  "macro_f1": 94.01,
+  "per_class": {
+    "Normal": {
+      "precision": 99.2,
+      "recall": 99.2,
+      "f1": 99.2,
+      "support": 367
+    },
+    "Bundle Branch Block": {
+      "precision": 97.7,
+      "recall": 100.0,
+      "f1": 98.9,
+      "support": 86
+    },
+    "Ventricular": {
+      "precision": 75.0,
+      "recall": 100.0,
+      "f1": 85.7,
+      "support": 15
+    },
+    "Atrial": {
+      "precision": 87.5,
+      "recall": 100.0,
+      "f1": 93.3,
+      "support": 7
+    },
+    "Other": {
+      "precision": 98.5,
+      "recall": 88.0,
+      "f1": 93.0,
+      "support": 75
+    }
+  },
+  "test_samples": 550
+}

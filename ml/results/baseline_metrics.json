@@ -1,0 +1,77 @@
+{
+  "logistic_regression": {
+    "accuracy": 75.45,
+    "train_time_s": 0.1,
+    "per_class": {
+      "Normal": {
+        "precision": 95.1,
+        "recall": 80.1,
+        "f1": 87.0,
+        "support": 367
+      },
+      "Bundle Branch Block": {
+        "precision": 52.3,
+        "recall": 67.4,
+        "f1": 58.9,
+        "support": 86
+      },
+      "Ventricular": {
+        "precision": 30.8,
+        "recall": 80.0,
+        "f1": 44.4,
+        "support": 15
+      },
+      "Atrial": {
+        "precision": 31.8,
+        "recall": 100.0,
+        "f1": 48.3,
+        "support": 7
+      },
+      "Other": {
+        "precision": 63.8,
+        "recall": 58.7,
+        "f1": 61.1,
+        "support": 75
+      }
+    },
+    "macro_f1": 59.94
+  },
+  "svm": {
+    "accuracy": 90.73,
+    "train_time_s": 0.3,
+    "note": "trained on 2,564 of 2,564 samples",
+    "per_class": {
+      "Normal": {
+        "precision": 99.4,
+        "recall": 89.4,
+        "f1": 94.1,
+        "support": 367
+      },
+      "Bundle Branch Block": {
+        "precision": 74.5,
+        "recall": 95.3,
+        "f1": 83.7,
+        "support": 86
+      },
+      "Ventricular": {
+        "precision": 62.5,
+        "recall": 100.0,
+        "f1": 76.9,
+        "support": 15
+      },
+      "Atrial": {
+        "precision": 38.9,
+        "recall": 100.0,
+        "f1": 56.0,
+        "support": 7
+      },
+      "Other": {
+        "precision": 98.5,
+        "recall": 89.3,
+        "f1": 93.7,
+        "support": 75
+      }
+    },
+    "macro_f1": 80.88
+  }
+}

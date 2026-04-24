@@ -10,8 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@rolldown/binding-darwin-x64": "^1.0.0-rc.17",
+    "@types/three": "^0.184.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "three": "^0.184.0",
     "uplot": "^1.6.32"
   },
   "devDependencies": {
