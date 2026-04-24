@@ -1,7 +1,10 @@
 // src/api/ecgClient.ts
 import type { AnalysisResponse } from '../types/analysis';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+/** Production: set in Vercel → Settings → Environment Variables as VITE_API_BASE_URL */
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000/api/v1'
+).replace(/\/$/, '');
 
 export class APIError extends Error {
   status: number;
