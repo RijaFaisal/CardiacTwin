@@ -1,0 +1,22 @@
+# API / inference image: install CPU torch in Dockerfile first, then:
+# pip install -r requirements-api.txt
+
+fastapi
+uvicorn
+python-multipart
+
+tensorflow==2.16.2
+keras==3.13.2
+h5py
+
+numpy
+scipy
+scikit-learn
+pandas
+
+wfdb
+neurokit2
+PyWavelets
+
+pydantic
+reportlab>=4.0

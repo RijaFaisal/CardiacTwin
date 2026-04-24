@@ -1,0 +1,12 @@
+# Render Blueprint ($0 free tier): slim image without TensorFlow.
+# If the service OOMs or fails health checks, use a paid plan or run the API locally + Cloudflare Tunnel (DEPLOY_HOSTING.md).
+
+services:
+  - type: web
+    name: cardiactwin-api
+    runtime: docker
+    region: virginia
+    plan: free
+    dockerfilePath: ./Dockerfile.free
+    dockerContext: .
+    healthCheckPath: /health

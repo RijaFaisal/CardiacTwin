@@ -1,0 +1,17 @@
+.git
+.github
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.cursor
+.claude
+ecg-front/node_modules
+ecg-front/dist
+ml/data
+data/raw/ptbxl
+storage/uploads
+storage/sessions
+*.md
+!README.md

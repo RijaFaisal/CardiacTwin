@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { ecgClient } from '../../api/ecgClient';
+import { ecgClient, explainFetchError, isProductionApiMissing } from '../../api/ecgClient';
 
 interface Props {
     onUploadSuccess: (id: string) => void;
@@ -165,7 +165,11 @@ export default function UploadScreen({ onUploadSuccess }: Props) {
 
             setError('Unsupported format. Upload a .csv file or both .hea & .dat files.');
         } catch (err: any) {
-            setError(err.message || 'Upload failed.');
+            setError(
+                err?.status === 0
+                    ? err.message
+                    : explainFetchError(err, 'Upload failed.'),
+            );
         } finally {
             setUploading(false);
         }
@@ -179,7 +183,11 @@ export default function UploadScreen({ onUploadSuccess }: Props) {
             const { session_id } = await ecgClient.loadDemo(scenario);
             onUploadSuccess(session_id);
         } catch (err: any) {
-            setError(err.message || 'Could not load demo record.');
+            setError(
+                err?.status === 0
+                    ? err.message
+                    : explainFetchError(err, 'Could not load demo record.'),
+            );
         } finally {
             setDemoLoading(null);
         }
@@ -198,6 +206,17 @@ export default function UploadScreen({ onUploadSuccess }: Props) {
 
             {/* ── Left panel — upload UI ──────────────────────────────── */}
             <div className="flex-1 flex flex-col justify-center px-12 py-16 max-w-2xl">
+
+                {isProductionApiMissing && (
+                    <div className="mb-6 px-4 py-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-200 text-sm leading-relaxed">
+                        <p className="font-semibold text-amber-100 mb-1">API not configured</p>
+                        <p className="text-amber-200/90 text-xs">
+                            Add <code className="text-amber-300">VITE_API_BASE_URL</code> in Vercel
+                            (e.g. <code className="text-amber-300">https://your-backend…/api/v1</code>),
+                            then trigger a new deployment so the build picks it up.
+                        </p>
+                    </div>
+                )}
 
                 {/* Brand */}
                 <div className="mb-10">

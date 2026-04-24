@@ -1,0 +1,18 @@
+# Same as requirements-api.txt but NO TensorFlow — fits tighter free RAM.
+# Trade-off: MIT-BIH beat-level Grad-CAM (TensorFlow .h5) is skipped; FCN-Wang + PyTorch Grad-CAM still work.
+
+fastapi
+uvicorn
+python-multipart
+
+numpy
+scipy
+scikit-learn
+pandas
+
+wfdb
+neurokit2
+PyWavelets
+
+pydantic
+reportlab>=4.0

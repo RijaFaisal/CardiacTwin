@@ -6,7 +6,12 @@ class Settings:
     
     # Base directories
     BASE_DIR = Path(__file__).resolve().parent
-    MODELS_DIR = BASE_DIR / "models" / "artifacts"
+    # Cloud: set CARDIACTWIN_MODELS_DIR to a persistent disk path containing the .pth / .pkl files
+    MODELS_DIR = (
+        Path(os.environ["CARDIACTWIN_MODELS_DIR"]).resolve()
+        if os.environ.get("CARDIACTWIN_MODELS_DIR")
+        else (BASE_DIR / "models" / "artifacts")
+    )
     UPLOAD_DIR = BASE_DIR / "storage" / "uploads"
     
     # Artifact paths
