@@ -1,0 +1,86 @@
+# ======================
+# 🐍 Python / FastAPI
+# ======================
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ======================
+# 🔐 Environment
+# ======================
+.env
+.env.*
+!.env.example
+
+# ======================
+# 📊 Data & Models (IMPORTANT)
+# ======================
+# Ignore heavy data
+data/
+ecg_csvs/
+
+# Allow small sample data if needed
+!data/sample/
+
+# Models
+*.pt
+*.pth
+models/artifacts/
+
+# ======================
+# ⚛️ Frontend (Vite/React)
+# ======================
+node_modules/
+dist/
+dist-ssr/
+.vite/
+
+# If frontend is in subfolder
+ecg-front/node_modules/
+ecg-front/dist/
+ecg-front/.vite/
+
+# ======================
+# 🧠 Logs & temp
+# ======================
+*.log
+logs/
+*.tmp
+*.temp
+
+# ======================
+# 🧑‍💻 IDE / OS
+# ======================
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+.DS_Store
+Thumbs.db
+
+*.swp
+*.swo
+*~
+
+# ======================
+# 📦 Package managers
+# ======================
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
