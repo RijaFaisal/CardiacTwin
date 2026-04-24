@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import CriticalBanner from './CriticalBanner';
 import AboveFold from '../above-fold/AboveFold';
 import FirstScroll from '../first-scroll/FirstScroll';
-// import SecondScroll from '../second-scroll/SecondScroll';
-// import ThirdScroll from '../third-scroll/ThirdScroll';
+import HeartVisualization from '../heart/HeartVisualization';
 import type { AnalysisResponse } from '../../types/analysis';
 import { ecgClient } from '../../api/ecgClient';
 
@@ -46,9 +45,12 @@ export default function Dashboard({ sessionId }: { sessionId: string }) {
                 <FirstScroll data={data} />
             </div>
 
-            {/* Second Scroll: Supporting detail */}
-            <div className="min-h-screen p-4 border-t border-zinc-800">
-                {/* <SecondScroll data={data} /> */}
+            {/* Second Scroll: 3D Cardiac Digital Twin */}
+            <div className="h-screen border-t border-zinc-800 bg-zinc-950">
+                <HeartVisualization
+                    bpm={data.metrics?.heart_rate_bpm?.value ?? null}
+                    severity={data.verdict.severity}
+                />
             </div>
 
             {/* Third Scroll: Technical */}

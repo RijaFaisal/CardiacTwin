@@ -155,6 +155,12 @@ class AnalysisResponse(BaseModel):
     peaks:       PeakMarkers
     ai_analysis: AIAnalysis
 
+    # ── Explainability (present only when ?explain=true) ──────────────────
+    gradcam: Optional[dict] = Field(
+        None,
+        description="Grad-CAM beat explainability from the 1D CNN (CardiacDigitalTwin model)",
+    )
+
     # ── Metadata ──────────────────────────────────────────────────────────
     processing_notes: list[str] = Field(
         default_factory=list,

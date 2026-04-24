@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routes import upload, predict
 
 # New routes
-from api.routes import analyze, export
+from api.routes import analyze, export, simulate
 
 app = FastAPI(title="ECG Analysis API", version="1.0.0")
 
@@ -26,6 +26,7 @@ app.include_router(predict.router, prefix="/api/v1", tags=["ML Inference"])
 # New routers
 app.include_router(analyze.router, prefix="/api/v1", tags=["Analysis"])
 app.include_router(export.router, prefix="/api/v1", tags=["Export"])
+app.include_router(simulate.router)
 
 @app.get("/")
 def read_root():

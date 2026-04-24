@@ -7,7 +7,7 @@ interface TwelveLeadGridProps {
     peaks?: PeakMarkers;
 }
 
-export default function TwelveLeadGrid({ waveforms, peaks }: TwelveLeadGridProps) {
+export default function TwelveLeadGrid({ waveforms }: TwelveLeadGridProps) {
     if (!waveforms || waveforms.length < 12) return null;
 
     // Standard 4x3 Clinical Grid Layout

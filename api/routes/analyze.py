@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 import os
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from config import settings
 import scipy.signal
@@ -37,8 +37,8 @@ from schemas.analysis import (
     QualityBadge,
 )
 
-# ── NEW import (the only new dependency) ─────────────────────────────────────
 from core.loader.ecg_loader import load_session_ecg_with_notes
+from core.inference.gradcam import gradcam_runner
 
 router = APIRouter(tags=["Analysis"])
 logger = logging.getLogger(__name__)
@@ -191,7 +191,10 @@ def _empty_nk_result(signal_2d, sampling_rate: int) -> dict:
     },
     summary="Full ECG analysis (NeuroKit2 + AI)",
 )
-async def analyze_ecg(session_id: str) -> AnalysisResponse:
+async def analyze_ecg(
+    session_id: str,
+    explain: bool = Query(False, description="Run Grad-CAM beat explainability (CNN)"),
+) -> AnalysisResponse:
     notes: list[str] = []
 
     # ── 1 & 2. Auto-detect format and load ───────────────────────────────
@@ -226,9 +229,23 @@ async def analyze_ecg(session_id: str) -> AnalysisResponse:
         notes.append(f"AI inference error (predictions unavailable): {exc}")
         ai_raw = {"probabilities": {}, "detected_conditions": []}
 
-    # ── 5. Assemble and return ────────────────────────────────────────────
+    # ── 5. Grad-CAM (optional) ────────────────────────────────────────────
+    gradcam_result = None
+    if explain:
+        try:
+            lead2      = signal_raw[:, 1] if signal_raw.shape[1] > 1 else signal_raw[:, 0]
+            r_peaks_nk = nk_result["peaks"].get("r_peaks", [])
+            gradcam_result = gradcam_runner.run(lead2, native_sr, r_peaks_nk)
+        except Exception as exc:
+            logger.warning("Grad-CAM failed for session %s: %s", session_id, exc)
+            notes.append(f"Grad-CAM unavailable: {exc}")
+
+    # ── 6. Assemble and return ────────────────────────────────────────────
     try:
-        return _build_response(session_id, nk_result, ai_raw, notes)
+        response = _build_response(session_id, nk_result, ai_raw, notes)
+        if gradcam_result is not None:
+            response.gradcam = gradcam_result
+        return response
     except Exception as exc:
         logger.exception("Response assembly failed for session %s", session_id)
         raise HTTPException(status_code=500, detail=f"Response assembly error: {exc}")
