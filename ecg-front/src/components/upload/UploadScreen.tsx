@@ -8,6 +8,120 @@ interface Props {
     onUploadSuccess: (id: string) => void;
 }
 
+// ── Scrolling ECG strip — bottom of the right panel ──────────────────────
+function ScrollingECG() {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const syncSize = () => {
+            canvas.width  = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        };
+        syncSize();
+        const ro = new ResizeObserver(syncSize);
+        ro.observe(canvas);
+
+        // Synthetic PQRST waveform.  phase is 0–1 within one beat.
+        // Amplitudes and timings approximate a normal Lead-II morphology.
+        const ecgAt = (t: number): number => {
+            const period = 60 / 72; // 833 ms at 72 bpm
+            const phase  = (((t % period) + period) % period) / period;
+
+            if (phase >= 0.08 && phase < 0.21)        // P wave
+                return 0.18 * Math.sin(Math.PI * (phase - 0.08) / 0.13);
+            if (phase >= 0.28 && phase < 0.31)        // Q dip
+                return -0.14 * Math.sin(Math.PI * (phase - 0.28) / 0.03);
+            if (phase >= 0.31 && phase < 0.385)       // R spike
+                return Math.sin(Math.PI * (phase - 0.31) / 0.075);
+            if (phase >= 0.385 && phase < 0.43)       // S dip
+                return -0.24 * Math.sin(Math.PI * (phase - 0.385) / 0.045);
+            if (phase >= 0.47 && phase < 0.69)        // T wave
+                return 0.30 * Math.sin(Math.PI * (phase - 0.47) / 0.22);
+            return 0;
+        };
+
+        const PX_PER_SEC = 90; // scroll speed
+        let tOffset = 0;
+        let last    = performance.now();
+        let animId: number;
+
+        const draw = () => {
+            const now = performance.now();
+            tOffset  += (now - last) / 1000;
+            last      = now;
+
+            const W = canvas.width;
+            const H = canvas.height;
+            if (W === 0 || H === 0) { animId = requestAnimationFrame(draw); return; }
+
+            ctx.clearRect(0, 0, W, H);
+
+            // Dark-to-transparent gradient — strip blends into the 3D scene above it
+            const bg = ctx.createLinearGradient(0, 0, 0, H);
+            bg.addColorStop(0,    'rgba(8,8,16,0)');
+            bg.addColorStop(0.35, 'rgba(8,8,16,0.55)');
+            bg.addColorStop(1,    'rgba(8,8,16,0.92)');
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, W, H);
+
+            // Faint time-division grid (every 40 px ≈ one large square)
+            ctx.strokeStyle = 'rgba(63,63,70,0.55)'; // zinc-700 at low opacity
+            ctx.lineWidth   = 0.5;
+            for (let x = W % 40; x < W; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+            }
+
+            // Isoelectric baseline — one-third up from the canvas bottom
+            const baseline  = H * 0.67;
+            const amplitude = H * 0.38;
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(63,63,70,0.4)';
+            ctx.lineWidth   = 0.5;
+            ctx.moveTo(0, baseline); ctx.lineTo(W, baseline); ctx.stroke();
+
+            // ECG trace
+            ctx.beginPath();
+            ctx.strokeStyle = '#10b981'; // emerald-500
+            ctx.lineWidth   = 1.8;
+            ctx.shadowColor = '#10b981';
+            ctx.shadowBlur  = 7;
+            ctx.lineJoin    = 'round';
+
+            for (let x = 0; x <= W; x++) {
+                const t = tOffset - (W - x) / PX_PER_SEC;
+                const y = baseline - ecgAt(t) * amplitude;
+                x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Right-edge fade so the trace doesn't clash with the stats overlay
+            const rightFade = ctx.createLinearGradient(W * 0.72, 0, W, 0);
+            rightFade.addColorStop(0, 'rgba(8,8,16,0)');
+            rightFade.addColorStop(1, 'rgba(8,8,16,1)');
+            ctx.fillStyle = rightFade;
+            ctx.fillRect(0, 0, W, H);
+
+            animId = requestAnimationFrame(draw);
+        };
+
+        animId = requestAnimationFrame(draw);
+        return () => { ro.disconnect(); cancelAnimationFrame(animId); };
+    }, []);
+
+    return (
+        <canvas
+            ref={canvasRef}
+            className="absolute bottom-0 left-0 w-full h-36 pointer-events-none"
+        />
+    );
+}
+
 // ── Inline 3D heart for landing (no bpm prop needed, fixed normal state) ──
 function LandingHeart() {
     const mountRef = useRef<HTMLDivElement>(null);
@@ -224,75 +338,17 @@ export default function UploadScreen({ onUploadSuccess }: Props) {
                         Cardiac Digital Twin
                     </span>
                     <h1 className="mt-3 text-5xl font-bold text-zinc-50 tracking-tight leading-[1.1]">
-                        Clinical ECG<br />Analysis
+                        See inside every heartbeat.
                     </h1>
                     <p className="mt-4 text-zinc-400 text-base leading-relaxed max-w-sm">
-                        Upload a 12-lead ECG and get an AI-powered clinical report
-                        in seconds — 71 diagnostic classes, full explainability.
+                        Upload a 12-lead ECG and get full explainability.
                     </p>
-                </div>
-
-                {/* 3-step explainer */}
-                <div className="flex items-center gap-3 mb-8">
-                    {[
-                        { n: '1', label: 'Upload ECG' },
-                        { n: '2', label: 'AI Analysis' },
-                        { n: '3', label: 'Clinical Report' },
-                    ].map((step, i) => (
-                        <div key={step.n} className="flex items-center gap-3">
-                            <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold flex items-center justify-center">
-                                    {step.n}
-                                </span>
-                                <span className="text-xs text-zinc-400 whitespace-nowrap">{step.label}</span>
-                            </div>
-                            {i < 2 && <span className="text-zinc-700 text-xs">→</span>}
-                        </div>
-                    ))}
-                </div>
-
-                {/* Demo buttons */}
-                <div className="mb-5">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600 mb-3">
-                        Try with a sample ECG
-                    </p>
-                    <div className="flex gap-2">
-                        {([
-                            { key: 'normal', label: 'Normal Sinus', color: 'emerald' },
-                            { key: 'afib',   label: 'Atrial Fibrillation', color: 'amber' },
-                            { key: 'bbb',    label: 'Bundle Branch Block', color: 'red' },
-                        ] as const).map(({ key, label, color }) => {
-                            const colorMap = {
-                                emerald: 'border-emerald-700/50 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500',
-                                amber:   'border-amber-700/50  text-amber-400  hover:bg-amber-500/10  hover:border-amber-500',
-                                red:     'border-red-700/50    text-red-400    hover:bg-red-500/10    hover:border-red-500',
-                            };
-                            const isLoading = demoLoading === key;
-                            return (
-                                <button
-                                    key={key}
-                                    onClick={() => handleDemo(key)}
-                                    disabled={busy}
-                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium
-                                        transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed
-                                        ${colorMap[color]}`}
-                                >
-                                    {isLoading ? (
-                                        <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                    ) : (
-                                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                                    )}
-                                    {label}
-                                </button>
-                            );
-                        })}
-                    </div>
                 </div>
 
                 {/* Divider */}
                 <div className="flex items-center gap-3 mb-5">
                     <div className="flex-1 h-px bg-zinc-800" />
-                    <span className="text-[10px] text-zinc-600 uppercase tracking-widest">or upload your own</span>
+                    <span className="text-[10px] text-zinc-600 uppercase tracking-widest">upload your own</span>
                     <div className="flex-1 h-px bg-zinc-800" />
                 </div>
 
@@ -345,17 +401,16 @@ export default function UploadScreen({ onUploadSuccess }: Props) {
                     </div>
                 )}
 
-                {/* Footer note */}
-                <p className="mt-6 text-[10px] text-zinc-700">
-                    FCN Wang model · PTB-XL dataset · 71 diagnostic classes · Macro AUC 0.946
-                </p>
             </div>
 
             {/* ── Right panel — 3D heart ──────────────────────────────── */}
             <div className="hidden lg:flex flex-1 relative overflow-hidden">
                 <LandingHeart />
 
-                {/* Overlay gradient fade on left edge */}
+                {/* Scrolling ECG strip — sits below the heart, above the left-edge fade */}
+                <ScrollingECG />
+
+                {/* Overlay gradient fade on left edge — covers both heart and ECG trace */}
                 <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-zinc-950 to-transparent pointer-events-none" />
 
                 {/* Stats overlay bottom-right */}
@@ -370,13 +425,6 @@ export default function UploadScreen({ onUploadSuccess }: Props) {
                             <p className="text-[10px] uppercase tracking-widest text-zinc-600">{label}</p>
                         </div>
                     ))}
-                </div>
-
-                {/* Top-right label */}
-                <div className="absolute top-8 right-8 pointer-events-none">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-700">
-                        Cardiac Digital Twin
-                    </p>
                 </div>
             </div>
         </div>

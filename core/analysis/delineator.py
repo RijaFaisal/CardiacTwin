@@ -476,8 +476,14 @@ def run_full_delineation(
     # Peak detection on full-resolution signal
     peaks = delineate_peaks(signal_2d, sampling_rate)
 
-    # Intervals from full-resolution peaks
-    intervals = calculate_intervals(peaks, sampling_rate)
+    # Intervals from full-resolution peaks.
+    # Pass the rhythm lead so calculate_intervals uses the maximum-slope
+    # T-wave end method instead of the NeuroKit2 T-offset fallback.
+    intervals = calculate_intervals(
+        peaks,
+        sampling_rate,
+        lead_signal=signal_2d[RHYTHM_LEAD],
+    )
 
     # Extract waveform for all available leads
     waveforms = []
@@ -500,6 +506,11 @@ def run_full_delineation(
                 "status": "info",
                 "unit":   "ms",
             }
+
+    # Sanity gate (req 4): surface MEASUREMENT ERROR in the UI unit field so
+    # the metric card shows "— MEASUREMENT ERROR" instead of a bad number.
+    if intervals.get("qtc_error"):
+        metrics_with_status["qtc_ms"]["unit"] = "MEASUREMENT ERROR"
 
     return {
         "peaks":     peaks,

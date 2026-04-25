@@ -23,7 +23,7 @@ function Skeleton() {
                 <div className="h-40 bg-zinc-800/50 rounded-xl" />
             </div>
             <div className="grid grid-cols-4 gap-4">
-                {[0,1,2,3].map(i => <div key={i} className="h-28 bg-zinc-800/50 rounded-xl" />)}
+                {[0, 1, 2, 3].map(i => <div key={i} className="h-28 bg-zinc-800/50 rounded-xl" />)}
             </div>
             <div className="h-56 bg-zinc-800/50 rounded-xl" />
         </div>
@@ -54,9 +54,9 @@ function ErrorState({ message, onReset }: { message: string; onReset: () => void
 }
 
 export default function Dashboard({ sessionId, onReset }: Props) {
-    const [data,      setData]      = useState<AnalysisResponse | null>(null);
-    const [error,     setError]     = useState<string | null>(null);
-    const [tab,       setTab]       = useState<Tab>('overview');
+    const [data, setData] = useState<AnalysisResponse | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [tab, setTab] = useState<Tab>('overview');
     const [exporting, setExporting] = useState(false);
     const [exportErr, setExportErr] = useState<string | null>(null);
 
@@ -74,9 +74,9 @@ export default function Dashboard({ sessionId, onReset }: Props) {
         setExportErr(null);
         try {
             const blob = await ecgClient.exportReport(sessionId);
-            const url  = URL.createObjectURL(blob);
-            const a    = document.createElement('a');
-            a.href     = url;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
             a.download = `ecg_report_${sessionId.slice(0, 8)}.pdf`;
             a.click();
             URL.revokeObjectURL(url);
@@ -134,10 +134,10 @@ export default function Dashboard({ sessionId, onReset }: Props) {
                     ) : (
                         <div className="flex-1 overflow-y-auto">
                             <div className="p-6">
-                                {tab === 'overview'  && <AboveFold data={data} onSwitchTab={setTab} />}
-                                {tab === 'ecg'       && <FirstScroll data={data} />}
+                                {tab === 'overview' && <AboveFold data={data} onSwitchTab={setTab} />}
+                                {tab === 'ecg' && <FirstScroll data={data} />}
                                 {tab === 'simulator' && <SimulatePanel />}
-                                {tab === 'metrics'   && <ThirdScroll />}
+                                {tab === 'metrics' && <ThirdScroll />}
                             </div>
                         </div>
                     )}
