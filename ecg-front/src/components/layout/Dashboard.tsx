@@ -8,24 +8,37 @@ import AboveFold from '../above-fold/AboveFold';
 import FirstScroll from '../first-scroll/FirstScroll';
 import HeartVisualization from '../heart/HeartVisualization';
 import SimulatePanel from '../simulate/SimulatePanel';
-import ThirdScroll from '../third-scroll/ThirdScroll';
 
 interface Props {
     sessionId: string;
     onReset: () => void;
 }
 
-function Skeleton() {
+function AnalyzingState() {
     return (
-        <div className="p-6 space-y-4 max-w-6xl animate-pulse">
-            <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 h-40 bg-zinc-800/50 rounded-xl" />
-                <div className="h-40 bg-zinc-800/50 rounded-xl" />
+        <div className="flex-1 flex flex-col items-center justify-center gap-6 text-center p-8">
+            <div className="relative w-16 h-16">
+                <span className="absolute inset-0 rounded-full bg-emerald-500/10 animate-ping" style={{ animationDuration: '1.4s' }} />
+                <div className="relative w-16 h-16 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+                    <svg className="w-7 h-7 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                            d="M3 12h3l2-7 4 14 3-10 2 3h4" />
+                    </svg>
+                </div>
             </div>
-            <div className="grid grid-cols-4 gap-4">
-                {[0, 1, 2, 3].map(i => <div key={i} className="h-28 bg-zinc-800/50 rounded-xl" />)}
+            <div className="space-y-1.5">
+                <p className="text-zinc-100 font-semibold text-base tracking-tight">Analysing ECG</p>
+                <p className="text-zinc-500 text-sm">Signal delineation · AI classification · Grad-CAM</p>
             </div>
-            <div className="h-56 bg-zinc-800/50 rounded-xl" />
+            <div className="flex gap-1.5">
+                {[0, 1, 2].map(i => (
+                    <div
+                        key={i}
+                        className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce"
+                        style={{ animationDelay: `${i * 0.15}s` }}
+                    />
+                ))}
+            </div>
         </div>
     );
 }
@@ -123,12 +136,14 @@ export default function Dashboard({ sessionId, onReset }: Props) {
                     {error ? (
                         <ErrorState message={error} onReset={onReset} />
                     ) : !data ? (
-                        <div className="flex-1 overflow-y-auto"><Skeleton /></div>
+                        <AnalyzingState />
                     ) : tab === 'twin' ? (
                         <div className="flex-1 overflow-hidden">
                             <HeartVisualization
                                 bpm={data.metrics?.heart_rate_bpm?.value ?? null}
                                 severity={data.verdict.severity}
+                                rPeaks={data.peaks.r_peaks}
+                                waveform={data.waveforms[1] ?? data.waveforms[0]}
                             />
                         </div>
                     ) : (
@@ -137,7 +152,6 @@ export default function Dashboard({ sessionId, onReset }: Props) {
                                 {tab === 'overview' && <AboveFold data={data} onSwitchTab={setTab} />}
                                 {tab === 'ecg' && <FirstScroll data={data} />}
                                 {tab === 'simulator' && <SimulatePanel />}
-                                {tab === 'metrics' && <ThirdScroll />}
                             </div>
                         </div>
                     )}

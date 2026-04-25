@@ -70,33 +70,9 @@ function LandingHeart() {
             (err) => console.warn('heart.glb:', err),
         );
 
-        const beatMs = 60_000 / 72;
-        let elapsed  = 0;
-        let last     = performance.now();
         let animId: number;
 
         const animate = () => {
-            const now = performance.now();
-            elapsed  += now - last;
-            last      = now;
-
-            const phase = (elapsed % beatMs) / beatMs;
-
-            if (heart) {
-                const scale = phase < 0.15
-                    ? 1 + 0.07 * (phase / 0.15)
-                    : phase < 0.35
-                        ? 1 + 0.07 * (1 - (phase - 0.15) / 0.20)
-                        : 1.0;
-                heart.scale.setScalar(scale);
-            }
-
-            pulse.intensity = phase < 0.15
-                ? 3.5 + 3.5 * (phase / 0.15)
-                : phase < 0.35
-                    ? 3.5 + 3.5 * (1 - (phase - 0.15) / 0.20)
-                    : 3.5;
-
             controls.update();
             renderer.render(scene, camera);
             animId = requestAnimationFrame(animate);
@@ -123,6 +99,104 @@ function LandingHeart() {
     }, []);
 
     return <div ref={mountRef} className="w-full h-full" />;
+}
+
+// ── Scrolling ECG strip ────────────────────────────────────────────────────
+function EcgTracer() {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const syncSize = () => {
+            canvas.width  = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        };
+        syncSize();
+
+        const g = (t: number, mu: number, sig: number, h: number) =>
+            h * Math.exp(-0.5 * ((t - mu) / sig) ** 2);
+
+        const ecgSample = (phase: number): number => {
+            const t = ((phase % 1) + 1) % 1;
+            return (
+                g(t, 0.14, 0.030,  0.18) +
+                g(t, 0.43, 0.013, -0.12) +
+                g(t, 0.46, 0.017,  1.00) +
+                g(t, 0.50, 0.013, -0.18) +
+                g(t, 0.66, 0.050,  0.32)
+            );
+        };
+
+        const PX_PER_BEAT = 240;
+        const BPM         = 63;
+
+        let phase    = 0;
+        let lastTime = performance.now();
+        let animId:  number;
+
+        const draw = (now: number) => {
+            const dt  = Math.min((now - lastTime) / 1000, 0.1);
+            lastTime  = now;
+            phase    += (BPM / 60) * dt;
+
+            const W   = canvas.width;
+            const H   = canvas.height;
+            const mid = H * 0.50;
+            const amp = H * 0.38;
+
+            ctx.clearRect(0, 0, W, H);
+
+            // Faint ECG-paper grid
+            const gridPx = PX_PER_BEAT / 5;
+            ctx.lineWidth   = 1;
+            ctx.strokeStyle = 'rgba(34, 197, 94, 0.06)';
+            for (let x = 0; x < W; x += gridPx) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+            }
+            ctx.beginPath(); ctx.moveTo(0, mid); ctx.lineTo(W, mid); ctx.stroke();
+
+            // Waveform
+            ctx.beginPath();
+            for (let x = 0; x <= W; x++) {
+                const p = phase - (W - x) / PX_PER_BEAT;
+                const y = mid - ecgSample(p) * amp;
+                x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+
+            const grad = ctx.createLinearGradient(0, 0, W, 0);
+            grad.addColorStop(0.00, 'rgba(52, 211, 153, 0.00)');
+            grad.addColorStop(0.18, 'rgba(52, 211, 153, 0.55)');
+            grad.addColorStop(0.60, 'rgba(52, 211, 153, 0.80)');
+            grad.addColorStop(1.00, 'rgba(52, 211, 153, 0.90)');
+
+            ctx.strokeStyle = grad;
+            ctx.lineWidth   = 1.5;
+            ctx.lineJoin    = 'round';
+            ctx.stroke();
+
+            animId = requestAnimationFrame(draw);
+        };
+
+        animId = requestAnimationFrame(draw);
+        window.addEventListener('resize', syncSize);
+
+        return () => {
+            cancelAnimationFrame(animId);
+            window.removeEventListener('resize', syncSize);
+        };
+    }, []);
+
+    return (
+        <canvas
+            ref={canvasRef}
+            className="absolute bottom-0 inset-x-0 w-full pointer-events-none"
+            style={{ height: '72px' }}
+        />
+    );
 }
 
 // ── Main upload screen ────────────────────────────────────────────────────
@@ -202,7 +276,7 @@ export default function UploadScreen({ onUploadSuccess }: Props) {
     const busy = uploading || demoLoading !== null;
 
     return (
-        <div className="min-h-screen bg-zinc-950 flex">
+        <div className="min-h-screen bg-zinc-950 flex relative">
 
             {/* ── Left panel — upload UI ──────────────────────────────── */}
             <div className="flex-1 flex flex-col justify-center px-12 py-16 max-w-2xl">
@@ -224,11 +298,10 @@ export default function UploadScreen({ onUploadSuccess }: Props) {
                         Cardiac Digital Twin
                     </span>
                     <h1 className="mt-3 text-5xl font-bold text-zinc-50 tracking-tight leading-[1.1]">
-                        Clinical ECG<br />Analysis
+                        See inside every heartbeat.
                     </h1>
                     <p className="mt-4 text-zinc-400 text-base leading-relaxed max-w-sm">
-                        Upload a 12-lead ECG and get an AI-powered clinical report
-                        in seconds — 71 diagnostic classes, full explainability.
+                        Upload a 12-lead ECG and get full explainability.
                     </p>
                 </div>
 
@@ -249,7 +322,7 @@ export default function UploadScreen({ onUploadSuccess }: Props) {
                         ${busy ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
                         ${isDragging
                             ? 'border-emerald-500 bg-emerald-500/5 scale-[1.01]'
-                            : 'border-zinc-800 hover:border-zinc-600 bg-zinc-900/50 hover:bg-zinc-900'
+                            : 'border-zinc-800 hover:border-red-500/50 bg-zinc-900/50 hover:bg-zinc-900 hover:shadow-[0_0_22px_rgba(255,51,68,0.22)]'
                         }`}
                 >
                     <input
@@ -311,6 +384,8 @@ export default function UploadScreen({ onUploadSuccess }: Props) {
                     ))}
                 </div>
             </div>
+
+            <EcgTracer />
         </div>
     );
 }

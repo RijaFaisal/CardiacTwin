@@ -22,21 +22,6 @@ export default function TopBar({ data, onExport, exporting }: Props) {
     return (
         <header className="h-14 shrink-0 bg-zinc-900 border-b border-zinc-800 flex items-center px-5 gap-4">
 
-            {/* Logo — aligns with sidebar width */}
-            <div className="w-[220px] shrink-0 flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-md bg-indigo-500/20 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z" />
-                    </svg>
-                </div>
-                <div className="leading-none">
-                    <p className="text-sm font-semibold text-zinc-100 tracking-tight">CardiacTwin</p>
-                    <p className="text-[9px] text-zinc-600 tracking-wider uppercase mt-0.5">ECG Analysis System</p>
-                </div>
-            </div>
-
-            <div className="w-px h-6 bg-zinc-800 shrink-0" />
-
             {/* Session metadata */}
             <div className="flex items-center gap-3 flex-1 text-xs">
                 <div className="flex items-center gap-1.5">
